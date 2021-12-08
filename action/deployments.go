@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -25,7 +26,6 @@ type Status struct {
 	Id        *int64
 	State     *string
 	CreatedAt *github.Timestamp
-	UpdatedAt *github.Timestamp
 }
 
 type Args struct {
@@ -58,19 +58,39 @@ func ActionImpl(token *string, repo *string, ref *string) string {
 	})
 
 	if err != nil {
-		githubactions.Fatalf("Unable to get deployment history: %s", err.Error())
+		githubactions.Infof("Unable to get deployment history: %s\n", err.Error())
+		return ""
 	}
 
-	id, err := GetLatestActiveDeploymentId(history)
+	// log some useful deployment history
+	if len(history) > 0 {
+		jsonHistory, err := json.MarshalIndent(history, "", " ")
+		if err != nil {
+			githubactions.Fatalf(err.Error())
+		}
+		var sb strings.Builder
+		sb.WriteString(string(jsonHistory))
+		sb.WriteString("\n")
+
+		githubactions.Group("Ordered deployment history")
+		githubactions.Infof(sb.String())
+		githubactions.EndGroup()
+	} else {
+		githubactions.Infof("No deployment history found\n")
+		return ""
+	}
+
+	id, err := GetLatestSuccessfulDeploymentId(history)
 
 	if err != nil {
-		githubactions.Fatalf("Unable to get latest active deployment id: %s", err.Error())
+		githubactions.Infof("Unable to get latest active deployment id: %s\n", err.Error())
+		return ""
 	}
 
 	return strconv.FormatInt(*id, 10)
 }
 
-func GetLatestActiveDeploymentId(history []*DeploymentHistory) (*int64, error) {
+func GetLatestSuccessfulDeploymentId(history []*DeploymentHistory) (*int64, error) {
 	if len(history) == 0 {
 		return nil, errors.New("no deployments found in history")
 	}
@@ -83,7 +103,7 @@ func GetLatestActiveDeploymentId(history []*DeploymentHistory) (*int64, error) {
 
 	s := d.Statuses[0]
 
-	if *s.State != "active" {
+	if *s.State != "success" {
 		return nil, fmt.Errorf("the most recent status for deployment id [%d] is '%s'",
 			*d.DeploymentId, *s.State)
 	}
@@ -123,7 +143,6 @@ func GetDeploymentHistory(context context.Context, client *github.Client, args *
 			status.Id = s.ID
 			status.State = s.State
 			status.CreatedAt = s.CreatedAt
-			status.UpdatedAt = s.UpdatedAt
 
 			statuses = append(statuses, &status)
 		}

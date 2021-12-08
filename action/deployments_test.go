@@ -64,27 +64,27 @@ func TestLatestIsPending(t *testing.T) {
 
 	history := []*DeploymentHistory{&deployment}
 
-	id, err := GetLatestActiveDeploymentId(history)
+	id, err := GetLatestSuccessfulDeploymentId(history)
 
 	assert.Nil(t, id)
 	assert.NotNil(t, err)
 	fmt.Print(err.Error())
 }
 
-func TestLatestActive(t *testing.T) {
+func TestLatestSuccess(t *testing.T) {
 	var deployment DeploymentHistory
 	deployment.DeploymentId = Int64(123)
 	deployment.Environment = String("feature")
 
 	var status Status
 	status.Id = Int64(234)
-	status.State = String("active")
+	status.State = String("success")
 
 	deployment.Statuses = append(deployment.Statuses, &status)
 
 	history := []*DeploymentHistory{&deployment}
 
-	id, err := GetLatestActiveDeploymentId(history)
+	id, err := GetLatestSuccessfulDeploymentId(history)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, id)
@@ -93,7 +93,7 @@ func TestLatestActive(t *testing.T) {
 
 func TestNoDeployments(t *testing.T) {
 	history := []*DeploymentHistory{}
-	id, err := GetLatestActiveDeploymentId(history)
+	id, err := GetLatestSuccessfulDeploymentId(history)
 
 	assert.Nil(t, id)
 	assert.NotNil(t, err)
@@ -106,7 +106,7 @@ func TestNoStatuses(t *testing.T) {
 
 	history := []*DeploymentHistory{&deployment}
 
-	id, err := GetLatestActiveDeploymentId(history)
+	id, err := GetLatestSuccessfulDeploymentId(history)
 
 	assert.Nil(t, id)
 	assert.NotNil(t, err)
