@@ -1,0 +1,24 @@
+name: 'get-deployment-action'
+description: 'Get a deployment id for the specified'
+inputs:
+  github-token:
+    description: 'Github token'
+    required: true
+  repo:
+    description: 'Look for deployments in this repository, format is owner/repo, defaults to github.repository'
+    required: false
+    default: ${{ github.repository }}
+  ref:
+    description: 'Look for deployments on this ref, defaults to github.head_ref'
+    required: false
+    default: ${{ github.head_ref }}
+outputs:
+  deployment_id:
+    description: 'Deployment id'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.github-token }}
+    - ${{ inputs.repo }}
+    - ${{ inputs.ref }}
