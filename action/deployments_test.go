@@ -2,7 +2,6 @@ package action
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -64,11 +63,10 @@ func TestLatestIsPending(t *testing.T) {
 
 	history := []*DeploymentHistory{&deployment}
 
-	id, err := GetLatestSuccessfulDeploymentId(history)
+	id, s := GetLatestDeploymentInfo(history)
 
-	assert.Nil(t, id)
-	assert.NotNil(t, err)
-	fmt.Print(err.Error())
+	assert.Equal(t, int64(123), id)
+	assert.Equal(t, "pending", s)
 }
 
 func TestLatestSuccess(t *testing.T) {
@@ -84,20 +82,19 @@ func TestLatestSuccess(t *testing.T) {
 
 	history := []*DeploymentHistory{&deployment}
 
-	id, err := GetLatestSuccessfulDeploymentId(history)
+	id, s := GetLatestDeploymentInfo(history)
 
-	assert.Nil(t, err)
 	assert.NotNil(t, id)
-	assert.Equal(t, *Int64(123), *id, "deployment id is 123")
+	assert.Equal(t, "success", s)
+	assert.Equal(t, int64(123), id, "deployment id is 123")
 }
 
 func TestNoDeployments(t *testing.T) {
 	history := []*DeploymentHistory{}
-	id, err := GetLatestSuccessfulDeploymentId(history)
+	id, s := GetLatestDeploymentInfo(history)
 
-	assert.Nil(t, id)
-	assert.NotNil(t, err)
-	fmt.Print(err.Error())
+	assert.Equal(t, int64(0), id)
+	assert.Equal(t, "", s)
 }
 func TestNoStatuses(t *testing.T) {
 	var deployment DeploymentHistory
@@ -106,11 +103,10 @@ func TestNoStatuses(t *testing.T) {
 
 	history := []*DeploymentHistory{&deployment}
 
-	id, err := GetLatestSuccessfulDeploymentId(history)
+	id, s := GetLatestDeploymentInfo(history)
 
-	assert.Nil(t, id)
-	assert.NotNil(t, err)
-	fmt.Print(err.Error())
+	assert.Equal(t, int64(123), id)
+	assert.Equal(t, "", s)
 }
 
 func TestSortSortedDeployments(t *testing.T) {

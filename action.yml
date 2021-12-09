@@ -14,7 +14,9 @@ inputs:
     default: ${{ github.head_ref }}
 outputs:
   deployment_id:
-    description: 'Deployment id'
+    description: 'The deployment id'
+  status:
+    description: 'Last status of deployment'
 runs:
   using: 'docker'
   image: 'Dockerfile'

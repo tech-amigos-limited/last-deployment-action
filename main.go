@@ -2,6 +2,7 @@ package main
 
 import (
 	"get-deployment-action/action"
+	"strconv"
 
 	"github.com/sethvargo/go-githubactions"
 )
@@ -15,7 +16,13 @@ func main() {
 	githubactions.Debugf("received repo %s", repo)
 	githubactions.Debugf("received ref %s", ref)
 
-	id := action.ActionImpl(&token, &repo, &ref)
+	id, status := action.ActionImpl(&token, &repo, &ref)
 
-	githubactions.SetOutput("deployment_id", id)
+	if id == 0 {
+		githubactions.SetOutput("deployment_id", "")
+	} else {
+		githubactions.SetOutput("deployment_id", strconv.FormatInt(id, 10))
+	}
+
+	githubactions.SetOutput("status", status)
 }

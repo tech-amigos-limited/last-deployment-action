@@ -3,10 +3,7 @@ package action
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/google/go-github/v41/github"
@@ -41,7 +38,7 @@ func (d *DeploymentHistory) LastStatus() *Status {
 	return nil
 }
 
-func ActionImpl(token *string, repo *string, ref *string) string {
+func ActionImpl(token *string, repo *string, ref *string) (id int64, status string) {
 	context := context.Background()
 	tokenSource := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: *token},
@@ -59,7 +56,7 @@ func ActionImpl(token *string, repo *string, ref *string) string {
 
 	if err != nil {
 		githubactions.Infof("Unable to get deployment history: %s\n", err.Error())
-		return ""
+		return
 	}
 
 	// log some useful deployment history
@@ -77,58 +74,56 @@ func ActionImpl(token *string, repo *string, ref *string) string {
 		githubactions.EndGroup()
 	} else {
 		githubactions.Infof("No deployment history found\n")
-		return ""
+		return
 	}
 
-	id, err := GetLatestSuccessfulDeploymentId(history)
+	id, status = GetLatestDeploymentInfo(history)
 
 	if err != nil {
 		githubactions.Infof("Unable to get latest active deployment id: %s\n", err.Error())
-		return ""
+		return
 	}
 
-	return strconv.FormatInt(*id, 10)
+	return
 }
 
-func GetLatestSuccessfulDeploymentId(history []*DeploymentHistory) (*int64, error) {
+func GetLatestDeploymentInfo(history []*DeploymentHistory) (id int64, status string) {
 	if len(history) == 0 {
-		return nil, errors.New("no deployments found in history")
+		githubactions.Infof("no deployments found in history")
+		return
 	}
 
 	d := history[0]
+	id = *d.DeploymentId
 
 	if len(d.Statuses) == 0 {
-		return nil, fmt.Errorf("no statuses found for the most recent deployment id [%d]", *d.DeploymentId)
+		githubactions.Infof("no statuses found for the most recent deployment id [%d]", *d.DeploymentId)
+		return
 	}
 
-	s := d.Statuses[0]
-
-	if *s.State != "success" {
-		return nil, fmt.Errorf("the most recent status for deployment id [%d] is '%s'",
-			*d.DeploymentId, *s.State)
-	}
-
-	return d.DeploymentId, nil
+	status = *d.Statuses[0].State
+	return
 }
 
 // return an ordered array of deployments (most recent first), each with an ordered array
 // of statuses (more recent first)
-func GetDeploymentHistory(context context.Context, client *github.Client, args *Args) ([]*DeploymentHistory, error) {
+func GetDeploymentHistory(context context.Context, client *github.Client, args *Args) (history []*DeploymentHistory, err error) {
 
 	deployments, _, err := client.Repositories.ListDeployments(context, *args.Owner, *args.Repo,
 		&github.DeploymentsListOptions{Ref: *args.Ref})
 
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	var deploymentHistories []*DeploymentHistory
 	for _, d := range deployments {
 
-		githubStatuses, _, err := client.Repositories.ListDeploymentStatuses(context, *args.Owner, *args.Repo, *d.ID, nil)
+		var ghStatuses []*github.DeploymentStatus
+		ghStatuses, _, err = client.Repositories.ListDeploymentStatuses(context, *args.Owner, *args.Repo, *d.ID, nil)
 
 		if err != nil {
-			return nil, err
+			return
 		}
 
 		var deployment DeploymentHistory
@@ -138,7 +133,7 @@ func GetDeploymentHistory(context context.Context, client *github.Client, args *
 		deployment.CreatedAt = d.CreatedAt
 
 		var statuses []*Status
-		for _, s := range githubStatuses {
+		for _, s := range ghStatuses {
 			var status Status
 			status.Id = s.ID
 			status.State = s.State
