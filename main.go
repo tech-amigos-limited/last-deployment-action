@@ -1,7 +1,7 @@
 package main
 
 import (
-	"get-deployment-action/action"
+	"last-deployment-action/action"
 
 	"github.com/sethvargo/go-githubactions"
 )

@@ -2,7 +2,6 @@ package action
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -68,7 +67,6 @@ func TestLatestIsPending(t *testing.T) {
 
 	assert.Nil(t, id)
 	assert.NotNil(t, err)
-	fmt.Print(err.Error())
 }
 
 func TestLatestActive(t *testing.T) {
@@ -97,7 +95,6 @@ func TestNoDeployments(t *testing.T) {
 
 	assert.Nil(t, id)
 	assert.NotNil(t, err)
-	fmt.Print(err.Error())
 }
 func TestNoStatuses(t *testing.T) {
 	var deployment DeploymentHistory
@@ -110,7 +107,6 @@ func TestNoStatuses(t *testing.T) {
 
 	assert.Nil(t, id)
 	assert.NotNil(t, err)
-	fmt.Print(err.Error())
 }
 
 func TestSortSortedDeployments(t *testing.T) {
