@@ -41,17 +41,17 @@ func (d *DeploymentHistory) LastStatus() *Status {
 	return nil
 }
 
-func ActionImpl(token *string, repo *string, ref *string) string {
-	context := context.Background()
+func Impl(token *string, repo *string, ref *string) string {
+	ctx := context.Background()
 	tokenSource := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: *token},
 	)
 
-	client := github.NewClient(oauth2.NewClient(context, tokenSource))
+	client := github.NewClient(oauth2.NewClient(ctx, tokenSource))
 
 	s := strings.Split(*repo, "/")
 
-	history, err := GetDeploymentHistory(context, client, &Args{
+	history, err := GetDeploymentHistory(ctx, client, &Args{
 		Owner: String(strings.TrimSpace(s[0])),
 		Repo:  String(strings.TrimSpace(s[1])),
 		Ref:   String(*ref),
@@ -91,6 +91,7 @@ func GetLatestActiveDeploymentId(history []*DeploymentHistory) (*int64, error) {
 	return d.DeploymentId, nil
 }
 
+// GetDeploymentHistory
 // return an ordered array of deployments (most recent first), each with an ordered array
 // of statuses (more recent first)
 func GetDeploymentHistory(context context.Context, client *github.Client, args *Args) ([]*DeploymentHistory, error) {
@@ -128,7 +129,7 @@ func GetDeploymentHistory(context context.Context, client *github.Client, args *
 			statuses = append(statuses, &status)
 		}
 
-		// Sort with latest status first within each deployment
+		// Sort with the latest status first within each deployment
 		deployment.Statuses = sortStatuses(statuses)
 		deploymentHistories = append(deploymentHistories, &deployment)
 	}

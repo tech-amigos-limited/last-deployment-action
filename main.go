@@ -15,7 +15,7 @@ func main() {
 	githubactions.Debugf("received repo %s", repo)
 	githubactions.Debugf("received ref %s", ref)
 
-	id := action.ActionImpl(&token, &repo, &ref)
+	id := action.Impl(&token, &repo, &ref)
 
 	githubactions.SetOutput("deployment_id", id)
 }
