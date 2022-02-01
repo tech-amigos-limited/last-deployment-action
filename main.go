@@ -1,7 +1,7 @@
 package main
 
 import (
-	"get-deployment-action/action"
+	"last-deployment-action/action"
 	"strconv"
 
 	"github.com/sethvargo/go-githubactions"
@@ -19,10 +19,10 @@ func main() {
 	id, status := action.ActionImpl(&token, &repo, &ref)
 
 	if id == 0 {
-		githubactions.SetOutput("deployment_id", "")
+		githubactions.SetOutput("last_deployment_id", "")
 	} else {
-		githubactions.SetOutput("deployment_id", strconv.FormatInt(id, 10))
+		githubactions.SetOutput("last_deployment_id", strconv.FormatInt(id, 10))
 	}
 
-	githubactions.SetOutput("status", status)
+	githubactions.SetOutput("last_status", status)
 }

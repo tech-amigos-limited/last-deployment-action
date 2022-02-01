@@ -1,4 +1,4 @@
-name: 'get-deployment-action'
+name: 'last-deployment-action'
 description: 'Get a deployment id for the specified'
 inputs:
   github-token:
@@ -13,9 +13,9 @@ inputs:
     required: false
     default: ${{ github.head_ref }}
 outputs:
-  deployment_id:
+  last_deployment_id:
     description: 'The deployment id'
-  status:
+  last_status:
     description: 'Last status of deployment'
 runs:
   using: 'docker'
